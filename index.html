@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IL Property</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#16213e; --bg2:#1e2d50; --bg3:#263660;
+  --card:#1e2d50; --border:rgba(255,255,255,0.09);
+  --accent:#4fc3f7; --accent2:#29b6f6;
+  --green:#4caf82; --orange:#ff8c42;
+  --text:#eef2ff; --muted:#8899bb;
+  --radius:18px; --radius-sm:12px; --nav-h:68px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+/* LANG */
+#lang-screen{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;}
+.lang-logo{font-size:48px;margin-bottom:12px;}
+.lang-title{font-size:26px;font-weight:700;margin-bottom:6px;}
+.lang-sub{font-size:14px;color:var(--muted);margin-bottom:48px;text-align:center;line-height:1.5;}
+.lang-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;}
+.lang-btn{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:16px;font-weight:500;cursor:pointer;transition:border-color .2s,background .2s;}
+.lang-btn:active{background:var(--bg3);border-color:var(--accent);}
+.lang-flag{font-size:26px;}
+
+/* LAYOUT */
+#app{display:none;flex-direction:column;height:100%;}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* HEADER */
+.search-header{padding:14px 16px 10px;background:var(--bg);flex-shrink:0;}
+.search-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.loc-row{display:flex;align-items:center;gap:6px;}
+.loc-text{font-size:13px;color:var(--muted);}
+.loc-city{font-size:15px;font-weight:600;}
+.hdr-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7c4dff);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;}
+.search-box{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:12px;}
+.search-icon{font-size:16px;color:var(--muted);}
+.search-input{flex:1;background:none;border:none;outline:none;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);}
+.search-input::placeholder{color:var(--muted);}
+.type-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.type-tabs::-webkit-scrollbar{display:none;}
+.type-tab{flex-shrink:0;padding:7px 18px;border-radius:20px;font-size:13px;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;}
+.type-tab.active{background:var(--accent2);border-color:var(--accent2);color:#0d1b2e;}
+
+/* FILTERS */
+.filters-row{display:flex;align-items:center;gap:8px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.filters-row::-webkit-scrollbar{display:none;}
+.filter-chip{flex-shrink:0;padding:7px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s;}
+.filter-chip.on{background:rgba(79,195,247,.12);border-color:var(--accent);color:var(--accent);}
+.view-switcher{display:flex;gap:4px;margin-left:auto;flex-shrink:0;}
+.view-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.view-btn.active{background:var(--bg3);border-color:var(--accent);color:var(--accent);}
+
+/* SCROLL */
+.listings-wrap{flex:1;overflow-y:auto;padding:4px 12px 8px;scrollbar-width:none;}
+.listings-wrap::-webkit-scrollbar{display:none;}
+
+/* LIST VIEW */
+.view-list .listings{display:flex;flex-direction:column;gap:12px;}
+.view-list .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;display:flex;animation:fadeUp .3s ease both;}
+.view-list .card:active{opacity:.9;}
+.view-list .card-img{width:110px;flex-shrink:0;position:relative;overflow:hidden;background:var(--bg3);}
+.view-list .card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.view-list .card-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.view-list .card-body{padding:12px;flex:1;display:flex;flex-direction:column;justify-content:space-between;}
+.view-list .card-price{font-size:16px;font-weight:700;}
+.view-list .card-price span{font-size:11px;font-weight:400;color:var(--muted);}
+.view-list .card-title{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.3;}
+.view-list .card-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.view-list .card-badge{position:absolute;top:7px;left:7px;}
+
+/* BIG VIEW */
+.view-big .listings{display:flex;flex-direction:column;gap:14px;}
+.view-big .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;animation:fadeUp .3s ease both;}
+.view-big .card:active{opacity:.9;}
+.view-big .card-img{width:100%;height:200px;position:relative;overflow:hidden;background:var(--bg3);}
+.view-big .card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.view-big .card-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:52px;}
+.view-big .card-body{padding:13px 14px 14px;}
+.view-big .card-row{display:flex;justify-content:space-between;align-items:flex-start;}
+.view-big .card-price{font-size:18px;font-weight:700;}
+.view-big .card-price span{font-size:12px;font-weight:400;color:var(--muted);}
+.view-big .card-rating{display:flex;align-items:center;gap:4px;font-size:13px;color:#ffc107;font-weight:600;}
+.view-big .card-title{font-size:13px;color:var(--muted);margin-top:4px;}
+.view-big .card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.view-big .card-badge{position:absolute;top:10px;left:10px;}
+.view-big .card-saved{position:absolute;top:10px;right:10px;width:32px;height:32px;background:rgba(0,0,0,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;backdrop-filter:blur(4px);}
+
+/* SMALL VIEW */
+.view-small .listings{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.view-small .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;cursor:pointer;animation:fadeUp .3s ease both;}
+.view-small .card:active{opacity:.9;}
+.view-small .card-img{width:100%;height:110px;position:relative;overflow:hidden;background:var(--bg3);}
+.view-small .card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.view-small .card-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.view-small .card-body{padding:9px 10px 10px;}
+.view-small .card-price{font-size:14px;font-weight:700;}
+.view-small .card-price span{font-size:10px;font-weight:400;color:var(--muted);}
+.view-small .card-title{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3;}
+.view-small .card-meta{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.view-small .card-badge{position:absolute;top:6px;left:6px;}
+
+/* SHARED */
+.card-badge{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+.badge-rent{background:var(--green);color:#fff;}
+.badge-sale{background:var(--accent2);color:#0d1b2e;}
+.badge-new{background:var(--orange);color:#fff;}
+.meta-tag{font-size:10px;color:var(--muted);background:rgba(255,255,255,.06);padding:3px 7px;border-radius:5px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card:nth-child(1){animation-delay:.02s}.card:nth-child(2){animation-delay:.06s}
+.card:nth-child(3){animation-delay:.10s}.card:nth-child(4){animation-delay:.14s}
+.card:nth-child(5){animation-delay:.18s}.card:nth-child(6){animation-delay:.22s}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;}
+
+/* DETAIL */
+#detail-screen{position:fixed;inset:0;z-index:100;background:var(--bg);transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;overflow:hidden;}
+#detail-screen.open{transform:translateY(0);}
+.d-img{width:100%;height:250px;position:relative;flex-shrink:0;background:var(--bg3);}
+.d-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.d-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:72px;}
+.d-back{position:absolute;top:14px;left:14px;width:38px;height:38px;background:rgba(0,0,0,.5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;backdrop-filter:blur(8px);border:none;color:#fff;}
+.d-heart{position:absolute;top:14px;right:14px;width:38px;height:38px;background:rgba(0,0,0,.5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;backdrop-filter:blur(8px);border:none;}
+.d-scroll{flex:1;overflow-y:auto;padding:18px 16px 100px;scrollbar-width:none;}
+.d-scroll::-webkit-scrollbar{display:none;}
+.d-badges{display:flex;gap:6px;margin-bottom:10px;}
+.d-price{font-size:28px;font-weight:700;margin-bottom:4px;}
+.d-price span{font-size:15px;font-weight:400;color:var(--muted);}
+.d-addr{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.d-specs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;}
+.spec-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 8px;text-align:center;}
+.spec-val{font-size:18px;font-weight:700;}
+.spec-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.d-sec{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.d-desc{font-size:14px;line-height:1.65;color:rgba(238,242,255,.8);margin-bottom:20px;}
+.feats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
+.feat{padding:5px 12px;border-radius:20px;font-size:12px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);}
+.d-seller{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px;}
+.seller-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7c4dff);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0;}
+.seller-name{font-size:14px;font-weight:600;}
+.seller-type{font-size:11px;color:var(--muted);margin-top:2px;}
+.d-actions{position:absolute;bottom:0;left:0;right:0;padding:12px 16px 20px;background:rgba(22,33,62,.96);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;gap:10px;}
+.btn-main{flex:1;background:var(--accent2);color:#0d1b2e;border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-sec{background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;font-size:20px;cursor:pointer;}
+
+/* NAV */
+.bottom-nav{height:var(--nav-h);flex-shrink:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:8px 0;color:var(--muted);transition:color .15s;}
+.nav-item.active{color:var(--accent2);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-size:10px;font-weight:500;}
+.nav-add{width:48px;height:48px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:24px;color:#0d1b2e;cursor:pointer;box-shadow:0 4px 16px rgba(41,182,246,.35);border:none;margin:0 4px;flex-shrink:0;}
+
+/* OTHER SCREENS */
+.coming-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);padding:40px;}
+.coming-icon{font-size:56px;}
+.coming-title{font-size:18px;font-weight:600;color:var(--text);}
+.coming-sub{font-size:14px;text-align:center;line-height:1.5;}
+
+/* TOAST */
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:10px 18px;font-size:13px;color:var(--text);z-index:300;opacity:0;transition:opacity .25s,transform .25s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="lang-screen">
+  <div class="lang-logo">🏠</div>
+  <div class="lang-title">IL Property</div>
+  <div class="lang-sub">Недвижимость Израиля · Real estate · נדל"ן בישראל</div>
+  <div class="lang-btns">
+    <button class="lang-btn" onclick="boot('ru')"><span class="lang-flag">🇷🇺</span> Русский</button>
+    <button class="lang-btn" onclick="boot('en')"><span class="lang-flag">🇬🇧</span> English</button>
+    <button class="lang-btn" onclick="boot('he')"><span class="lang-flag">🇮🇱</span> עברית</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="screen active" id="screen-home">
+    <div class="search-header">
+      <div class="search-top">
+        <div class="loc-row">
+          <span>📍</span>
+          <div>
+            <div class="loc-text" id="loc-label">Местоположение</div>
+            <div class="loc-city" id="loc-city">Весь Израиль</div>
+          </div>
+        </div>
+        <div class="hdr-avatar">А</div>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="search-input" placeholder="Поиск по городу, району..." oninput="renderListings()">
+      </div>
+      <div class="type-tabs">
+        <button class="type-tab active" onclick="setType('all',this)" data-key="all">Все</button>
+        <button class="type-tab" onclick="setType('rent',this)" data-key="rent">Аренда</button>
+        <button class="type-tab" onclick="setType('sale',this)" data-key="sale">Продажа</button>
+        <button class="type-tab" onclick="setType('new',this)" data-key="new">Новостройки</button>
+      </div>
+    </div>
+    <div class="filters-row">
+      <button class="filter-chip" id="f-city" onclick="cycleCity(this)">📍 Город</button>
+      <button class="filter-chip" id="f-rooms" onclick="cycleRooms(this)">🛏 Комнаты</button>
+      <button class="filter-chip" id="f-price" onclick="cyclePrice(this)">₪ Цена</button>
+      <button class="filter-chip" id="f-pets" onclick="toggleF(this,'pets')">🐾 Животные</button>
+      <button class="filter-chip" id="f-noagent" onclick="toggleF(this,'noagent')">✋ Без агента</button>
+      <div class="view-switcher">
+        <button class="view-btn active" id="vb-list" onclick="setView('list')" title="Список">☰</button>
+        <button class="view-btn" id="vb-big" onclick="setView('big')" title="Крупные">⊡</button>
+        <button class="view-btn" id="vb-small" onclick="setView('small')" title="Мелкие">⊞</button>
+      </div>
+    </div>
+    <div class="listings-wrap view-list" id="listings-wrap">
+      <div class="listings" id="listings"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-chat">
+    <div class="coming-screen">
+      <div class="coming-icon">💬</div>
+      <div class="coming-title" id="chat-title">Чаты</div>
+      <div class="coming-sub" id="chat-sub">Здесь будут переписки с продавцами</div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-fav">
+    <div class="coming-screen">
+      <div class="coming-icon">❤️</div>
+      <div class="coming-title" id="fav-title">Избранное</div>
+      <div class="coming-sub" id="fav-sub">Сохранённые объявления появятся здесь</div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-profile">
+    <div class="coming-screen">
+      <div class="coming-icon">👤</div>
+      <div class="coming-title" id="profile-title">Профиль</div>
+      <div class="coming-sub" id="profile-sub">Управление аккаунтом и объявлениями</div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="navTo('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label" data-key="nav_home">Поиск</div>
+    </div>
+    <div class="nav-item" id="nav-chat" onclick="navTo('chat')">
+      <div class="nav-icon">💬</div>
+      <div class="nav-label" data-key="nav_chat">Чаты</div>
+    </div>
+    <button class="nav-add" onclick="showToast('🚧 Подача объявлений — скоро')">+</button>
+    <div class="nav-item" id="nav-fav" onclick="navTo('fav')">
+      <div class="nav-icon">❤️</div>
+      <div class="nav-label" data-key="nav_fav">Избранное</div>
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="navTo('profile')">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label" data-key="nav_profile">Профиль</div>
+    </div>
+  </nav>
+</div>
+
+<div id="detail-screen">
+  <div class="d-img" id="d-img-wrap">
+    <div class="d-img-ph" id="d-emoji">🏠</div>
+    <button class="d-back" onclick="closeDetail()">←</button>
+    <button class="d-heart" id="d-heart" onclick="toggleSave()">🤍</button>
+  </div>
+  <div class="d-scroll" id="d-body"></div>
+  <div class="d-actions">
+    <button class="btn-main" id="d-contact" onclick="showToast('📨 Скоро: написать продавцу')">💬 Написать</button>
+    <button class="btn-sec" onclick="showToast('📞 Номер в полной версии')">📞</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA=[
+  {id:1,type:'rent',city:'Tel Aviv',district:'Florentin',rooms:3,floor:4,area:78,price:8500,pets:true,agent:false,emoji:'🏙️',color:'#1a2744',photo:'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80',desc:'Светлая квартира со свежим ремонтом. 5 минут до ж/д. Частная парковка.',features:['Балкон','Парковка','Кондиционер','Кладовая'],seller:'Йоав Коэн',sellerType:'Частное лицо',rating:4.8},
+  {id:2,type:'sale',city:'Tel Aviv',district:'Неве-Цедек',rooms:4,floor:2,area:110,price:4200000,pets:false,agent:true,emoji:'🌿',color:'#1a2e1c',photo:'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600&q=80',desc:'Престижные апартаменты в сердце Неве-Цедека. Высокие потолки, дизайнерский ремонт.',features:['Лифт','Консьерж','Спортзал','Терраса'],seller:'Агентство Ривка',sellerType:'Агентство',rating:4.6},
+  {id:3,type:'rent',city:'Haifa',district:'Кармель',rooms:2,floor:7,area:58,price:4800,pets:true,agent:false,emoji:'🌊',color:'#0d2035',photo:'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80',desc:'Квартира с видом на море на горе Кармель. Тихий район. Отремонтированная кухня.',features:['Вид на море','Лифт','Кондиционер','Животные OK'],seller:'Михаил Штерн',sellerType:'Частное лицо',rating:4.9},
+  {id:4,type:'new',city:'Tel Aviv',district:'Рамат-ха-Хаял',rooms:4,floor:12,area:130,price:6800000,pets:true,agent:true,emoji:'🏗️',color:'#1d1a2e',photo:'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80',desc:'Новый комплекс с панорамным видом. Умный дом, бассейн на крыше. Сдача Q3 2026.',features:['Умный дом','Бассейн','2 парковки','Консьерж'],seller:'Shapira Developers',sellerType:'Застройщик',rating:4.7},
+  {id:5,type:'rent',city:'Jerusalem',district:'Катамон',rooms:3,floor:1,area:85,price:7200,pets:false,agent:false,emoji:'🕌',color:'#2a1f10',photo:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',desc:'Просторная квартира из иерусалимского камня в тихом Катамоне.',features:['Камень','Выход в сад','Место для сукки','Кладовая'],seller:'Давид Леви',sellerType:'Частное лицо',rating:4.5},
+  {id:6,type:'sale',city:'Netanya',district:'Центр',rooms:3,floor:5,area:95,price:2100000,pets:true,agent:true,emoji:'🏖️',color:'#0d2a28',photo:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80',desc:'Светлая квартира в 5 минутах от пляжа. Свежий ремонт. Вид на море с балкона.',features:['Балкон','Пляж рядом','Кондиционер','Лифт'],seller:'Netanya Homes',sellerType:'Агентство',rating:4.4},
+  {id:7,type:'rent',city:'Tel Aviv',district:'Ротшильд',rooms:1,floor:3,area:42,price:5500,pets:false,agent:false,emoji:'☕',color:'#1f1a10',photo:'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80',desc:'Студия на самом известном бульваре Израиля. Современный дизайн, высокие потолки.',features:['Бульвар Ротшильд','Современный дизайн','Кондиционер','Меблировано'],seller:'Ноа Бар',sellerType:'Частное лицо',rating:4.7},
+  {id:8,type:'sale',city:'Haifa',district:'Бат-Галим',rooms:5,floor:8,area:160,price:3800000,pets:true,agent:false,emoji:'🌅',color:'#1a0d2e',photo:'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80',desc:'Пентхаус с панорамным видом на море. Терраса 60м². Ремонт 2023.',features:['Пентхаус','Терраса 60м²','Вид на море','2 парковки'],seller:'Александр Попов',sellerType:'Частное лицо',rating:5.0},
+  {id:9,type:'new',city:'Beer Sheva',district:'Рамат-Бека',rooms:4,floor:6,area:120,price:1950000,pets:true,agent:true,emoji:'🏜️',color:'#1a150a',photo:'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80',desc:'Новый комплекс в технологическом районе. 20 минут от БГУ.',features:['Рядом БГУ','Новое','Парковка','Лифт'],seller:'Southern Develop',sellerType:'Застройщик',rating:4.3},
+  {id:10,type:'rent',city:'Netanya',district:'Ир-Ямим',rooms:4,floor:9,area:105,price:9800,pets:true,agent:true,emoji:'🐬',color:'#0a1a2a',photo:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&q=80',desc:'Роскошные апартаменты с видом на море в престижном Ир-Ямим.',features:['Вид на море','Бассейн','Спортзал','Консьерж'],seller:'Premium Rentals IL',sellerType:'Агентство',rating:4.8},
+  {id:11,type:'rent',city:'Jerusalem',district:'Немецкая колония',rooms:2,floor:2,area:65,price:6000,pets:false,agent:false,emoji:'🌳',color:'#0f1f10',photo:'https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?w=600&q=80',desc:'Уютная квартира в знаменитой Немецкой колонии. Каменный дом, кафе рядом.',features:['Каменный дом','Кондиционер','Вид на сад','Тихая улица'],seller:'Рут Шапиро',sellerType:'Частное лицо',rating:4.6},
+  {id:12,type:'sale',city:'Tel Aviv',district:'Север ТА',rooms:6,floor:10,area:200,price:9500000,pets:true,agent:true,emoji:'⭐',color:'#1a1a0a',photo:'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=600&q=80',desc:'Ультра-люкс пентхаус. Приватный лифт, вид 360°, итальянская кухня на заказ.',features:['Приватный лифт','Вид 360°','Итальянская кухня','Умный дом'],seller:'Elite Properties TLV',sellerType:'Агентство',rating:4.9},
+];
+
+const T={
+  ru:{all:'Все',rent:'Аренда',sale:'Продажа',new:'Новостройки',perMonth:'/мес',contact:'Написать продавцу',rooms:'комн',floor:'этаж',area:'м²',nav_home:'Поиск',nav_chat:'Чаты',nav_fav:'Избранное',nav_profile:'Профиль',loc_all:'Весь Израиль',description:'Описание',features:'Особенности',listed_by:'Продавец',no_results:'Ничего не найдено',no_results_sub:'Попробуй изменить фильтры',badge_rent:'АРЕНДА',badge_sale:'ПРОДАЖА',badge_new:'НОВОЕ',no_agent:'Без агента',saved:'Сохранено ✓',unsaved:'Убрано из избранного'},
+  en:{all:'All',rent:'Rent',sale:'Sale',new:'New builds',perMonth:'/mo',contact:'Contact seller',rooms:'rooms',floor:'floor',area:'m²',nav_home:'Search',nav_chat:'Chats',nav_fav:'Saved',nav_profile:'Profile',loc_all:'All Israel',description:'Description',features:'Features',listed_by:'Listed by',no_results:'No listings found',no_results_sub:'Try changing filters',badge_rent:'RENT',badge_sale:'SALE',badge_new:'NEW',no_agent:'No agent',saved:'Saved ✓',unsaved:'Removed'},
+  he:{all:'הכל',rent:'שכירות',sale:'מכירה',new:'בנייה חדשה',perMonth:'/חודש',contact:'לכתוב למוכר',rooms:'חד׳',floor:'קומה',area:'מ"ר',nav_home:'חיפוש',nav_chat:'צ׳אטים',nav_fav:'שמורים',nav_profile:'פרופיל',loc_all:'כל ישראל',description:'תיאור',features:'פרטים',listed_by:'מפרסם',no_results:'לא נמצאו תוצאות',no_results_sub:'נסה לשנות פילטרים',badge_rent:'שכירות',badge_sale:'מכירה',badge_new:'חדש',no_agent:'ללא עמלה',saved:'נשמר ✓',unsaved:'הוסר'},
+};
+
+let lang='ru',currentType='all',viewMode='list';
+let cityIdx=0,roomsIdx=0,priceIdx=0,activeFilters={};
+const savedSet=new Set();
+let curDetailId=null;
+
+const cities=[null,'Tel Aviv','Haifa','Jerusalem','Netanya','Beer Sheva'];
+const cityL={ru:['📍 Город','📍 Тель-Авив','📍 Хайфа','📍 Иерусалим','📍 Нетания','📍 Беэр-Шева'],en:['📍 City','📍 Tel Aviv','📍 Haifa','📍 Jerusalem','📍 Netanya','📍 Beer Sheva'],he:['📍 עיר','📍 תל אביב','📍 חיפה','📍 ירושלים','📍 נתניה','📍 באר שבע']};
+const roomsOpts=[null,1,2,3,4,5];
+const roomsL={ru:['🛏 Комнаты','🛏 1 комн','🛏 2 комн','🛏 3 комн','🛏 4 комн','🛏 5+'],en:['🛏 Rooms','🛏 1','🛏 2','🛏 3','🛏 4','🛏 5+'],he:['🛏 חדרים','🛏 1','🛏 2','🛏 3','🛏 4','🛏 5+']};
+const priceOpts=[null,6000,8000,10000,3000000,5000000];
+const priceL={ru:['₪ Цена','до ₪6k','до ₪8k','до ₪10k','до ₪3М','до ₪5М'],en:['₪ Price','to ₪6k','to ₪8k','to ₪10k','to ₪3M','to ₪5M'],he:['₪ מחיר','עד ₪6k','עד ₪8k','עד ₪10k','עד ₪3M','עד ₪5M']};
+
+const t=k=>T[lang][k]||T.en[k]||k;
+
+function boot(l){
+  lang=l;
+  document.getElementById('lang-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  if(l==='he') document.body.style.direction='rtl';
+  applyI18n(); renderListings();
+  try{const tg=window.Telegram.WebApp;tg.ready();tg.expand();}catch(e){}
+}
+
+function applyI18n(){
+  document.getElementById('loc-city').textContent=t('loc_all');
+  document.getElementById('search-input').placeholder=l==='he'?'חיפוש לפי עיר, שכונה...':l==='en'?'Search by city, district...':'Поиск по городу, району...';
+  document.querySelectorAll('.type-tab').forEach(el=>{const k=el.getAttribute('data-key');if(T[lang][k])el.textContent=T[lang][k];});
+  document.querySelectorAll('[data-key]').forEach(el=>{if(el.classList.contains('type-tab'))return;const k=el.getAttribute('data-key');if(T[lang][k])el.textContent=T[lang][k];});
+  document.getElementById('f-city').textContent=cityL[lang][0];
+  document.getElementById('f-rooms').textContent=roomsL[lang][0];
+  document.getElementById('f-price').textContent=priceL[lang][0];
+  document.getElementById('f-pets').textContent=lang==='he'?'🐾 בע"ח':lang==='en'?'🐾 Pets':'🐾 Животные';
+  document.getElementById('f-noagent').textContent=lang==='he'?'✋ ללא סוכן':lang==='en'?'✋ No agent':'✋ Без агента';
+}
+
+function setType(type,el){
+  currentType=type;
+  document.querySelectorAll('.type-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active'); renderListings();
+}
+function cycleCity(el){cityIdx=(cityIdx+1)%cities.length;el.textContent=cityL[lang][cityIdx];el.classList.toggle('on',cityIdx>0);renderListings();}
+function cycleRooms(el){roomsIdx=(roomsIdx+1)%roomsOpts.length;el.textContent=roomsL[lang][roomsIdx];el.classList.toggle('on',roomsIdx>0);renderListings();}
+function cyclePrice(el){priceIdx=(priceIdx+1)%priceOpts.length;el.textContent=priceL[lang][priceIdx];el.classList.toggle('on',priceIdx>0);renderListings();}
+function toggleF(el,k){activeFilters[k]=!activeFilters[k];el.classList.toggle('on',activeFilters[k]);renderListings();}
+function setView(m){
+  viewMode=m;
+  ['list','big','small'].forEach(x=>document.getElementById('vb-'+x).classList.toggle('active',x===m));
+  document.getElementById('listings-wrap').className='listings-wrap view-'+m;
+  renderListings();
+}
+
+function renderListings(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  const city=cities[cityIdx],rooms=roomsOpts[roomsIdx],price=priceOpts[priceIdx];
+  const filtered=DATA.filter(l=>{
+    if(currentType!=='all'&&l.type!==currentType)return false;
+    if(city&&l.city!==city)return false;
+    if(rooms&&l.rooms<rooms)return false;
+    if(price&&l.price>price)return false;
+    if(activeFilters.pets&&!l.pets)return false;
+    if(activeFilters.noagent&&l.agent)return false;
+    if(q&&!(l.city.toLowerCase().includes(q)||l.district.toLowerCase().includes(q)||l.desc.toLowerCase().includes(q)))return false;
+    return true;
+  });
+  const c=document.getElementById('listings');
+  if(!filtered.length){c.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">${t('no_results')}</div><div style="color:var(--muted);font-size:13px;">${t('no_results_sub')}</div></div>`;return;}
+  c.innerHTML=filtered.map(l=>card(l)).join('');
+}
+
+function fp(l){return l.type==='rent'?`₪${l.price.toLocaleString()}<span>${t('perMonth')}</span>`:`₪${(l.price/1e6).toFixed(1)}M`;}
+function bc(type){return type==='rent'?'badge-rent':type==='sale'?'badge-sale':'badge-new';}
+function bt(type){return type==='rent'?t('badge_rent'):type==='sale'?t('badge_sale'):t('badge_new');}
+function imgHtml(l){
+  const ph=`<div class="card-img-ph" style="background:${l.color};${l.photo?'display:none':''}">${l.emoji}</div>`;
+  return l.photo?`<img src="${l.photo}" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'">${ph}`:ph;
+}
+
+function card(l){
+  if(viewMode==='list') return `<div class="card" onclick="openDetail(${l.id})"><div class="card-img" style="background:${l.color}">${imgHtml(l)}<div class="card-badge ${bc(l.type)}">${bt(l.type)}</div></div><div class="card-body"><div><div class="card-price">${fp(l)}</div><div class="card-title">${l.rooms} ${t('rooms')} · ${l.district}, ${l.city}</div></div><div class="card-meta"><span class="meta-tag">${l.area} ${t('area')}</span><span class="meta-tag">${t('floor')} ${l.floor}</span>${l.pets?'<span class="meta-tag">🐾</span>':''}${!l.agent?`<span class="meta-tag">${t('no_agent')}</span>`:''}</div></div></div>`;
+  if(viewMode==='big') return `<div class="card" onclick="openDetail(${l.id})"><div class="card-img" style="background:${l.color}">${imgHtml(l)}<div class="card-badge ${bc(l.type)}">${bt(l.type)}</div><div class="card-saved">${savedSet.has(l.id)?'❤️':'🤍'}</div></div><div class="card-body"><div class="card-row"><div class="card-price">${fp(l)}</div><div class="card-rating">★ ${l.rating}</div></div><div class="card-title">${l.rooms} ${t('rooms')} · ${l.district}, ${l.city}</div><div class="card-meta"><span class="meta-tag">${l.area} ${t('area')}</span><span class="meta-tag">${t('floor')} ${l.floor}</span>${l.pets?'<span class="meta-tag">🐾</span>':''}${!l.agent?`<span class="meta-tag">${t('no_agent')}</span>`:''}</div></div></div>`;
+  return `<div class="card" onclick="openDetail(${l.id})"><div class="card-img" style="background:${l.color}">${imgHtml(l)}<div class="card-badge ${bc(l.type)}">${bt(l.type)}</div></div><div class="card-body"><div class="card-price">${fp(l)}</div><div class="card-title">${l.district}, ${l.city}</div><div class="card-meta"><span class="meta-tag">${l.rooms} ${t('rooms')}</span><span class="meta-tag">${l.area}${t('area')}</span></div></div></div>`;
+}
+
+function openDetail(id){
+  const l=DATA.find(x=>x.id===id); curDetailId=id;
+  const wrap=document.getElementById('d-img-wrap');
+  wrap.style.background=l.color;
+  wrap.innerHTML=`${l.photo?`<img src="${l.photo}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`:''}<div class="d-img-ph" style="${l.photo?'display:none':''}">${l.emoji}</div><button class="d-back" onclick="closeDetail()">←</button><button class="d-heart" id="d-heart" onclick="toggleSave()">${savedSet.has(id)?'❤️':'🤍'}</button>`;
+  const noA=!l.agent?`<span style="background:rgba(76,175,130,.15);color:#4caf82;border:1px solid rgba(76,175,130,.3);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">${t('no_agent')}</span>`:'';
+  document.getElementById('d-body').innerHTML=`<div class="d-badges"><span class="card-badge ${bc(l.type)}" style="font-size:11px;padding:4px 10px">${bt(l.type)}</span>${noA}</div><div class="d-price">${l.type==='rent'?`₪${l.price.toLocaleString()}`:`₪${(l.price/1e6).toFixed(1)}M`}<span> ${l.type==='rent'?t('perMonth'):''}</span></div><div class="d-addr">📍 ${l.district}, ${l.city} &nbsp;·&nbsp; ★ ${l.rating}</div><div class="d-specs"><div class="spec-box"><div class="spec-val">${l.rooms}</div><div class="spec-lbl">${t('rooms')}</div></div><div class="spec-box"><div class="spec-val">${l.area}</div><div class="spec-lbl">${t('area')}</div></div><div class="spec-box"><div class="spec-val">${l.floor}</div><div class="spec-lbl">${t('floor')}</div></div></div><div class="d-sec">${t('description')}</div><div class="d-desc">${l.desc}</div><div class="d-sec">${t('features')}</div><div class="feats">${l.features.map(f=>`<span class="feat">${f}</span>`).join('')}</div><div class="d-sec">${t('listed_by')}</div><div class="d-seller"><div class="seller-av">${l.seller[0]}</div><div><div class="seller-name">${l.seller}</div><div class="seller-type">${l.sellerType}</div></div></div>`;
+  document.getElementById('d-contact').textContent='💬 '+t('contact');
+  document.getElementById('detail-screen').classList.add('open');
+}
+
+function closeDetail(){document.getElementById('detail-screen').classList.remove('open');}
+function toggleSave(){
+  if(!curDetailId)return;
+  savedSet.has(curDetailId)?savedSet.delete(curDetailId):savedSet.add(curDetailId);
+  const h=document.getElementById('d-heart');
+  if(h)h.textContent=savedSet.has(curDetailId)?'❤️':'🤍';
+  showToast(savedSet.has(curDetailId)?t('saved'):t('unsaved'));
+  renderListings();
+}
+
+function navTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const ni=document.getElementById('nav-'+id);if(ni)ni.classList.add('active');
+}
+
+let toastT;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+try{const lc=window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;if(lc==='ru')boot('ru');else if(lc==='he'||lc==='iw')boot('he');}catch(e){}
+</script>
+</body>
+</html>
